@@ -76,13 +76,15 @@ while read -r "LINE"; do
     VERSION=$(echo "${LINE}" | awk '{print $2}')
     
     # Make sure we are only doing release above 16.x
-    if ! git rev-parse "${TAG}" >/dev/null 2>&1; then
+    if ! git rev-parse "${VERSION}" >/dev/null 2>&1; then
         # Tag does not exists, create new tag
+        echo "Creating Commit"
         git commit -m "build: release ${VERSION}" --allow-empty
-        git tag --delete "${VERSION}" > /dev/null 2>&1 || true
-        git push --force https://${GIT_CREDENTIALS}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git :refs/tags/${VERSION} > /dev/null 2>&1 || true
-        git tag --force "${VERSION}"
+        echo "Creating Tag"
+        git tag "${VERSION}"
+        echo "Pushing Tag (Skip CI)"
         git push -o ci.skip --force https://${GIT_CREDENTIALS}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git ${GIT_DEFAULT_BRANCH}
+        echo "Pushing Tag"
         git push https://${GIT_CREDENTIALS}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git --tags
     fi
 done < "${CI_PROJECT_DIR}/data/tags"
