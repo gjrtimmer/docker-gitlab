@@ -85,7 +85,6 @@ while read -r "LINE"; do
         git push -o ci.skip --force https://${GIT_CREDENTIALS}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git ${GIT_DEFAULT_BRANCH}
         git push https://${GIT_CREDENTIALS}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git --tags
     fi
-    break
 done < "${CI_PROJECT_DIR}/data/tags"
 
 # exit 0
