@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://gitlab.com/gitlab-org/gitlab/-/raw/master/app/assets/javascripts/editor/schema/ci.json
+include:
+  - project: templates/ci
+    file: default.yml
+
+check-upstream:
+  stage: test
+  image:
+    name: registry.timmertech.nl/docker/alpine-base:latest
+    pull_policy: always
+  rules:
+    - if: $GITLAB_USER_NAME != "PROJECT_BOT_TOKEN" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "schedule"
+    - if: $GITLAB_USER_NAME != "PROJECT_BOT_TOKEN" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "web"
+  before_script: []
+  after_script: !reference [.healthcheck, after_script]
+  script:
+    - ./scripts/check-upstream.sh
+
+multi:
+  extends: .docker-build-multi
+  rules:
+    - if: $CI_COMMIT_TAG
+  variables:
+    PLATFORM: "linux/arm64,linux/amd64"
+    DOCKER_HUB: "ENABLED"
+    DOCKER_IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_TAG}
+    DOCKER_ARGS: >-
+      --build-arg=RELEASE_VERSION=${CI_COMMIT_TAG}
+    DOCKER_TAGS: >-
+      --tag=${DOCKER_IMAGE_PATH}:latest
+      --tag=${DOCKER_IMAGE_HUB_PATH}:latest
+      --tag=${DOCKER_IMAGE_HUB_PATH}:${CI_COMMIT_TAG}
